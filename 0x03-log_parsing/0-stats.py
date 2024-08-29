@@ -1,53 +1,54 @@
 #!/usr/bin/python3
-'''reads stdin line by line and computes metrics'''
-import re
+
 import sys
 
 
-status_code_dict = {
-        '200': 0,
-        '301': 0,
-        '400': 0,
-        '401': 0,
-        '403': 0,
-        '404': 0,
-        '405': 0,
-        '500': 0
-        }
-total_filesize = 0
-count = 0
+def print_msg(dict_sc, total_file_size):
+    """
+    Method to print
+    Args:
+        dict_sc: dict of status codes
+        total_file_size: total of the file
+    Returns:
+        Nothing
+    """
+
+    print("File size: {}".format(total_file_size))
+    for key, val in sorted(dict_sc.items()):
+        if val != 0:
+            print("{}: {}".format(key, val))
 
 
-def print_metrics():
-    '''Prints the current metrics'''
-    print(f"File size: {total_filesize}")
-    for key, value in status_code_dict.items():
-        if value > 0:
-            print(f"{key}: {value}")
-
+total_file_size = 0
+code = 0
+counter = 0
+dict_sc = {"200": 0,
+           "301": 0,
+           "400": 0,
+           "401": 0,
+           "403": 0,
+           "404": 0,
+           "405": 0,
+           "500": 0}
 
 try:
     for line in sys.stdin:
-        pattern = r"^((\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})|\w+)\s*-\s*"
-        pattern += r"(\[\d{4}-\d{1,2}-\d{1,2} \d{2}:\d{2}:\d{2}\.\d{6}\]) "
-        pattern += r"(\"GET \/projects\/260 HTTP\/1.1\" \w+ \d+)$"
-        if re.match(pattern, line):
-            split_content = line.split()
-            status_code = split_content[-2]
-            file_size = split_content[-1]
-            pattern = r"\d+"
-            if not re.match(pattern, file_size):
-                total_filesize += int(file_size)
-                count += 1
-                continue
-            if status_code in status_code_dict:
-                status_code_dict[status_code] += 1
-            total_filesize += int(file_size)
-            count += 1
-            if not count % 10:
-                print_metrics()
-except (KeyboardInterrupt, EOFError) as e:
-    print_metrics()
-    sys.exit()
+        parsed_line = line.split()  # ✄ trimming
+        parsed_line = parsed_line[::-1]  # inverting
 
-print_metrics()
+        if len(parsed_line) > 2:
+            counter += 1
+
+            if counter <= 10:
+                total_file_size += int(parsed_line[0])  # file size
+                code = parsed_line[1]  # status code
+
+                if (code in dict_sc.keys()):
+                    dict_sc[code] += 1
+
+            if (counter == 10):
+                print_msg(dict_sc, total_file_size)
+                counter = 0
+
+finally:
+    print_msg(dict_sc, total_file_size)
