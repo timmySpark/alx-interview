@@ -23,10 +23,10 @@ def validUTF8(data):
                 remaining_bytes += 1
                 mask_byte = mask_byte >> 1
 
-            ifremaining_bytes == 0:
+            if remaining_bytes == 0:
                 continue
 
-            ifremaining_bytes == 1 orremaining_bytes > 4:
+            if remaining_bytes == 1 or remaining_bytes > 4:
                 return False
 
         else:
